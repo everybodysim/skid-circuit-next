@@ -2,12 +2,12 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { createWorldSettings, createWorld, addBroadphaseLayer, addObjectLayer, enableCollision, registerAll, updateWorld, rigidBody, box, triangleMesh, MotionType, castRay, createAnyCastRayCollector, createDefaultCastRaySettings, CastRayStatus, filter as ccLayerFilter } from 'crashcat';
-import { Vehicle } from './Vehicle.js?v=1000227';
+import { Vehicle } from './Vehicle.js?v=1000228';
 import { createShadowProxyController } from './ShadowProxy.js?v=2';
 import { Camera } from './Camera.js?v=1';
 import { Controls } from './Controls.js';
-import { buildTrack, decodeCells, decodeCellsAny, decodeV3Json, computeSpawnPosition, computeTrackBounds, computePoolPresetWaterCells, prerenderWaterRefraction, updateWaterQuality, setWaterUnderwaterCameraState, TRACK_CELLS, ORIENT_DEG, CELL_RAW, GRID_SCALE } from './Track.js?v=1000237';
-import { buildWallColliders, createSphereBody } from './Physics.js?v=20260920';
+import { buildTrack, decodeCells, decodeCellsAny, decodeV3Json, computeSpawnPosition, computeTrackBounds, computePoolPresetWaterCells, prerenderWaterRefraction, updateWaterQuality, setWaterUnderwaterCameraState, TRACK_CELLS, ORIENT_DEG, CELL_RAW, GRID_SCALE } from './Track.js?v=1000238';
+import { buildWallColliders, createSphereBody } from './Physics.js?v=20260922';
 import { SmokeTrails, WaterSplashFX } from './Particles.js';
 import { SkidMarks } from './SkidMarks.js';
 import { GameAudio } from './Audio.js';
@@ -316,21 +316,21 @@ const modelNames = [
 
 const models = {};
 const CAR_STATS = {
-	'vehicle-truck-yellow': { name: 'Trail Pickup', bodyStyle: 'truck', speed: 9, accel: 5, perf: { topSpeed: 1.12, accelRate: 4.8, driveForce: 95.0 } },
-	'vehicle-truck-green': { name: 'Utility Pickup', bodyStyle: 'truck', speed: 9, accel: 5, perf: { topSpeed: 1.12, accelRate: 4.8, driveForce: 95.0 } },
-	'vehicle-truck-purple': { name: 'Cargo Van', bodyStyle: 'van', speed: 9, accel: 5, perf: { topSpeed: 1.12, accelRate: 4.8, driveForce: 95.0 } },
-	'vehicle-truck-red': { name: 'Stakebed Truck', bodyStyle: 'truck', speed: 9, accel: 5, perf: { topSpeed: 1.12, accelRate: 4.8, driveForce: 95.0 } },
-	'vehicle-hatchback-green': { name: 'Hatchback', bodyStyle: 'hatchback', speed: 9, accel: 5, perf: { topSpeed: 1.12, accelRate: 4.8, driveForce: 95.0 } },
-	'vehicle-sedan-orange': { name: 'Sedan', bodyStyle: 'sedan', speed: 9, accel: 5, perf: { topSpeed: 1.12, accelRate: 4.8, driveForce: 95.0 } },
-	'vehicle-car-police': { name: 'Police Car', bodyStyle: 'car', speed: 9, accel: 5, perf: { topSpeed: 1.12, accelRate: 4.8, driveForce: 95.0 } },
-	'vehicle-delivery-yellow': { name: 'Delivery', bodyStyle: 'delivery', speed: 9, accel: 5, perf: { topSpeed: 1.12, accelRate: 4.8, driveForce: 95.0 } },
-	'vehicle-flatbed-purple': { name: 'Flatbed Truck', bodyStyle: 'flatbed', speed: 9, accel: 5, perf: { topSpeed: 1.12, accelRate: 4.8, driveForce: 95.0 } },
-	'vehicle-van-blue': { name: 'Panel Van', bodyStyle: 'van', speed: 9, accel: 5, perf: { topSpeed: 1.12, accelRate: 4.8, driveForce: 95.0 } },
-	'vehicle-ambulance-red': { name: 'Ambulance', bodyStyle: 'van', speed: 9, accel: 5, perf: { topSpeed: 1.12, accelRate: 4.8, driveForce: 95.0 } },
-	'vehicle-firetruck-red': { name: 'Fire Truck', bodyStyle: 'truck', speed: 9, accel: 5, perf: { topSpeed: 1.12, accelRate: 4.8, driveForce: 95.0 } },
-	'vehicle-taxi-yellow': { name: 'Taxi', bodyStyle: 'car', speed: 9, accel: 5, perf: { topSpeed: 1.12, accelRate: 4.8, driveForce: 95.0 } },
-	'vehicle-tractor-yellow': { name: 'Tractor', bodyStyle: 'tractor', speed: 9, accel: 5, perf: { topSpeed: 1.12, accelRate: 4.8, driveForce: 95.0 } },
-	'vehicle-trash-green': { name: 'Trash Truck', bodyStyle: 'truck', speed: 9, accel: 5, perf: { topSpeed: 1.12, accelRate: 4.8, driveForce: 95.0 } },
+	'vehicle-truck-yellow': { name: 'Trail Pickup', bodyStyle: 'truck', speed: 9, accel: 5, perf: { topSpeed: 1.25, accelRate: 6.0, driveForce: 100.0 } },
+	'vehicle-truck-green': { name: 'Utility Pickup', bodyStyle: 'truck', speed: 9, accel: 5, perf: { topSpeed: 1.25, accelRate: 6.0, driveForce: 100.0 } },
+	'vehicle-truck-purple': { name: 'Cargo Van', bodyStyle: 'van', speed: 9, accel: 5, perf: { topSpeed: 1.25, accelRate: 6.0, driveForce: 100.0 } },
+	'vehicle-truck-red': { name: 'Stakebed Truck', bodyStyle: 'truck', speed: 9, accel: 5, perf: { topSpeed: 1.25, accelRate: 6.0, driveForce: 100.0 } },
+	'vehicle-hatchback-green': { name: 'Hatchback', bodyStyle: 'hatchback', speed: 9, accel: 5, perf: { topSpeed: 1.25, accelRate: 6.0, driveForce: 100.0 } },
+	'vehicle-sedan-orange': { name: 'Sedan', bodyStyle: 'sedan', speed: 9, accel: 5, perf: { topSpeed: 1.25, accelRate: 6.0, driveForce: 100.0 } },
+	'vehicle-car-police': { name: 'Police Car', bodyStyle: 'car', speed: 9, accel: 5, perf: { topSpeed: 1.25, accelRate: 6.0, driveForce: 100.0 } },
+	'vehicle-delivery-yellow': { name: 'Delivery', bodyStyle: 'delivery', speed: 9, accel: 5, perf: { topSpeed: 1.25, accelRate: 6.0, driveForce: 100.0 } },
+	'vehicle-flatbed-purple': { name: 'Flatbed Truck', bodyStyle: 'flatbed', speed: 9, accel: 5, perf: { topSpeed: 1.25, accelRate: 6.0, driveForce: 100.0 } },
+	'vehicle-van-blue': { name: 'Panel Van', bodyStyle: 'van', speed: 9, accel: 5, perf: { topSpeed: 1.25, accelRate: 6.0, driveForce: 100.0 } },
+	'vehicle-ambulance-red': { name: 'Ambulance', bodyStyle: 'van', speed: 9, accel: 5, perf: { topSpeed: 1.25, accelRate: 6.0, driveForce: 100.0 } },
+	'vehicle-firetruck-red': { name: 'Fire Truck', bodyStyle: 'truck', speed: 9, accel: 5, perf: { topSpeed: 1.25, accelRate: 6.0, driveForce: 100.0 } },
+	'vehicle-taxi-yellow': { name: 'Taxi', bodyStyle: 'car', speed: 9, accel: 5, perf: { topSpeed: 1.25, accelRate: 6.0, driveForce: 100.0 } },
+	'vehicle-tractor-yellow': { name: 'Tractor', bodyStyle: 'tractor', speed: 9, accel: 5, perf: { topSpeed: 1.25, accelRate: 6.0, driveForce: 100.0 } },
+	'vehicle-trash-green': { name: 'Trash Truck', bodyStyle: 'truck', speed: 9, accel: 5, perf: { topSpeed: 1.25, accelRate: 6.0, driveForce: 100.0 } },
 };
 const CAR_SELECT_STYLES = {
 	'vehicle-truck-yellow': { background: '#f2c94c', border: '#ffe082', color: '#1b1606' },
@@ -492,6 +492,8 @@ const PRECIP_DEFAULT = 'none';
 const INTENSITY_DEFAULT = 'medium';
 const WIND_DEFAULT = 'none';
 const LEADERBOARD_API_BASE = 'https://racing-leaderboard-api.ga1010.workers.dev/api/leaderboard';
+// New handling generation: prefix EVERY track id so no old-physics record leaks in.
+const LEADERBOARD_ID_PREFIX = 'easy-v1-';
 const ACCOUNT_API_BASE = 'https://racing-account-api.ga1010.workers.dev/api/accounts';
 const TRACK_SHARE_API_ROOT = 'https://racing-track-board-api.ga1010.workers.dev';
 const TRACK_SHARE_API_PREFIXES = [ '/api', '' ];
@@ -3909,7 +3911,7 @@ function getTrackId( mapParamValue, extrasParamValue ) {
 	// leaderboard was intentionally reset. Every other track keeps the v4
 	// seed so its existing leaderboard id (and records) are untouched.
 	const trackIdSeedVersion = ( mapParamValue || extrasParamValue ) ? 'v4' : 'v5';
-	return `trk-${ hashTrackSeed( `${ trackIdSeedVersion }-url|${ rawUrl }` ) }`;
+	return `${ LEADERBOARD_ID_PREFIX }trk-${ hashTrackSeed( `${ trackIdSeedVersion }-url|${ rawUrl }` ) }`;
 
 }
 
@@ -9813,7 +9815,20 @@ function completeCampaignStage() {
 	let arcLinkState = { contactKey: null, lockUntilExit: false };
 	const specialSurfaceContactState = new Map();
 	const boostCells = Array.isArray( extras?.boosts ) ? extras.boosts : [];
-	const surfaceCells = Array.isArray( extras?.surfaces ) ? extras.surfaces : [];
+	const rawSurfaceCells = Array.isArray( extras?.surfaces ) ? extras.surfaces : [];
+	const runtimePadCounts = new Map();
+	const surfaceCells = rawSurfaceCells.map( ( [ rawGx, rawGz, type ] ) => [
+		Math.floor( Number( rawGx ) || 0 ), Math.floor( Number( rawGz ) || 0 ), type,
+	] ).filter( ( [ gx, gz, type ] ) => {
+
+		if ( ! String( type || '' ).startsWith( 'pad-' ) ) return true;
+		const key = `${ gx },${ gz }`;
+		const count = runtimePadCounts.get( key ) || 0;
+		if ( count >= 3 ) return false;
+		runtimePadCounts.set( key, count + 1 );
+		return true;
+
+	} );
 	const customSurfaceConfigs = extras?.customSurfaces && typeof extras.customSurfaces === 'object' ? extras.customSurfaces : {};
 	const customPadConfigs = extras?.customPads && typeof extras.customPads === 'object' ? extras.customPads : {};
 	const surfaceCellMap = new Map();
@@ -10424,11 +10439,18 @@ function completeCampaignStage() {
 
 	}
 
+	const MAX_ACTIVE_PAD_STACK = 3;
+	function getActivePadStackCount( effect ) {
+
+		return Math.max( 0, Math.floor( Number( effect?.__padStackCount ) || 0 ) );
+
+	}
+
 	function combinePadEffects( current, incoming ) {
 
-		if ( ! current ) return incoming ? { ...incoming } : null;
+		if ( ! current ) return incoming ? { ...incoming, __padStackCount: 1 } : null;
 		if ( ! incoming ) return { ...current };
-		const combined = { ...current, ...incoming };
+		const combined = { ...current, ...incoming, __padStackCount: Math.min( MAX_ACTIVE_PAD_STACK, getActivePadStackCount( current ) + 1 ) };
 		const multiplicativeKeys = [ 'gravity', 'grip', 'drag', 'accel', 'drive', 'topSpeed', 'steering', 'timeScale', 'scale' ];
 		for ( const key of multiplicativeKeys ) {
 
@@ -10455,6 +10477,7 @@ function completeCampaignStage() {
 		delete base.__sizePadType;
 		const next = incoming ? { ...base, ...incoming } : base;
 		next.__sizePadType = incoming?.id || null;
+		next.__padStackCount = Math.min( MAX_ACTIVE_PAD_STACK, getActivePadStackCount( current ) + 1 );
 		return Object.keys( next ).length ? next : null;
 
 	}
@@ -10473,6 +10496,12 @@ function completeCampaignStage() {
 		}
 		const effect = getPadEffectForType( contact.type );
 		const previous = getCurrentEffect ? ( getCurrentEffect() || null ) : null;
+		if ( getActivePadStackCount( previous ) >= MAX_ACTIVE_PAD_STACK ) {
+
+			showEffectPopup( 'Pad stack limit reached (3 max)' );
+			return contact.key;
+
+		}
 		if ( SIZE_PAD_TYPES.has( contact.type ) ) setEffect( applySizePadEffect( previous, effect ) );
 		else setEffect( combinePadEffects( previous, effect ) );
 		showEffectPopup( `Effect applied: ${ getPadLabel( contact.type ) }` );

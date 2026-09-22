@@ -1094,7 +1094,20 @@ export function buildTrack( scene, models, customCells, extras = null ) {
 		const poleCells = Array.isArray( extras.poles ) ? extras.poles : [];
 		const elevatedCells = Array.isArray( extras.elevated ) ? extras.elevated : [];
 		const decorations = Array.isArray( extras.decorations ) ? extras.decorations : [];
-		const surfaces = Array.isArray( extras.surfaces ) ? extras.surfaces : [];
+		const rawSurfaces = Array.isArray( extras.surfaces ) ? extras.surfaces : [];
+		const renderedPadCounts = new Map();
+		const surfaces = rawSurfaces.map( ( [ rawGx, rawGz, type ] ) => [
+			Math.floor( Number( rawGx ) || 0 ), Math.floor( Number( rawGz ) || 0 ), type,
+		] ).filter( ( [ gx, gz, type ] ) => {
+
+			if ( ! String( type || '' ).startsWith( 'pad-' ) ) return true;
+			const key = `${ gx },${ gz }`;
+			const count = renderedPadCounts.get( key ) || 0;
+			if ( count >= 3 ) return false;
+			renderedPadCounts.set( key, count + 1 );
+			return true;
+
+		} );
 		const magnets = Array.isArray( extras.magnets ) ? extras.magnets : [];
 		const arcLinks = Array.isArray( extras.arcLinks ) ? extras.arcLinks : [];
 		const waterCells = Array.isArray( extras.water ) ? extras.water : [];

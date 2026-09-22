@@ -66,15 +66,15 @@
 
 		} )();
 	</script>
-<link rel="canonical" href="https://everybodysim.github.io/Racing-game/editor.html">
+<link rel="canonical" href="https://everybodysim.github.io/racing-game/editor.html">
 <meta name="description" content="Build your own racing circuits with the Skid Circuit track editor — place track pieces, set checkpoints, and test your custom maps instantly.">
 <meta name="robots" content="index, follow">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Skid Circuit">
 <meta property="og:title" content="Skid Circuit — Track Editor">
 <meta property="og:description" content="Build your own racing circuits with the Skid Circuit track editor — place track pieces, set checkpoints, and test your custom maps instantly.">
-<meta property="og:url" content="https://everybodysim.github.io/Racing-game/editor.html">
-<meta property="og:image" content="https://everybodysim.github.io/Racing-game/branding/logo.png">
+<meta property="og:url" content="https://everybodysim.github.io/racing-game/editor.html">
+<meta property="og:image" content="https://everybodysim.github.io/racing-game/branding/logo.png">
 	<style>
 .skip-link{position:absolute;left:12px;top:-40px;padding:8px 10px;border-radius:8px;background:#1b2a40;color:#fff;z-index:9999;border:1px solid rgba(255,255,255,.35)}
 .skip-link:focus{top:12px}
@@ -729,7 +729,6 @@
 				<option value="pad-no-acceleration">No Acceleration (Slide)</option>
 				<option value="pad-slow-motion">Slow Motion</option>
 				<option value="pad-fast-motion">Fast Motion</option>
-				<option value="pad-drift">Drift Mode</option>
 				<option value="pad-size-small">Mini Pad (0.5×)</option>
 				<option value="pad-size-normal">Normal Pad (1.0×)</option>
 				<option value="pad-size-mega">Mega Pad (1.8×)</option>
@@ -895,10 +894,10 @@
 	import * as THREE from 'three';
 	import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 	import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
-	import { ORIENT_DEG, CELL_RAW, GRID_SCALE, encodeCells, decodeCells, encodeCellsV3, decodeCellsAny, encodeV3Json, decodeV3Json, computeSpawnPosition, computeTrackBounds, computePoolPresetWaterCells, smoothChokeSourceModel } from './js/Track.js?v=1000237';
+	import { ORIENT_DEG, CELL_RAW, GRID_SCALE, encodeCells, decodeCells, encodeCellsV3, decodeCellsAny, encodeV3Json, decodeV3Json, computeSpawnPosition, computeTrackBounds, computePoolPresetWaterCells, smoothChokeSourceModel } from './js/Track.js?v=1000238';
 	// Drive-in-editor: real physics + real vehicle, same stack the game runs.
 	import { createWorldSettings, createWorld, addBroadphaseLayer, addObjectLayer, enableCollision, registerAll, updateWorld, rigidBody, box, MotionType, castRay, createAnyCastRayCollector, createDefaultCastRaySettings, CastRayStatus, filter as ccLayerFilter } from 'crashcat';
-	import { buildWallColliders, createSphereBody } from './js/Physics.js?v=20260920';
+	import { buildWallColliders, createSphereBody } from './js/Physics.js?v=20260922';
 	import { Vehicle } from './js/Vehicle.js?v=1000227';
 import { createShadowProxyController } from './js/ShadowProxy.js?v=2';
 
@@ -950,6 +949,14 @@ import { createShadowProxyController } from './js/ShadowProxy.js?v=2';
 		'surface-custom-a', 'surface-custom-b', 'surface-custom-c'
 	];
 	const BUILDING_TYPES = [ 'building-garage', 'building-small-a', 'building-small-b', 'building-small-c', 'building-small-d' ];
+	// Fractional placement is reserved for geometry with a real hitbox. Effects,
+	// decorations, pools, magnets, portals and imported visuals stay on-grid.
+	const OFFGRID_OBSTACLE_TYPES = [ BUMP_TOOL, POLE_TOOL, CUBE_TOOL, WALL_TOOL, JUMP_TOOL, MOVING_SLIDE_TOOL, MOVING_SPIN_TOOL, MOVING_ORBIT_TOOL, MOVING_CUSTOM_TOOL ];
+	function canPlaceOffGrid( type ) {
+
+		return TILE_TYPES.includes( type ) || ELEVATED_TYPES.includes( type ) || BUILDING_TYPES.includes( type ) || OFFGRID_OBSTACLE_TYPES.includes( type );
+
+	}
         const DECO_TYPES = [ 'decoration-forest', 'decoration-tents', 'decoration-empty', ...BUILDING_TYPES ];
 	const CUSTOM_MODEL_KEY_PREFIX = 'custom:';
 	const TRACK_SHARE_API_ROOT = 'https://racing-track-board-api.ga1010.workers.dev';
@@ -2767,6 +2774,14 @@ function computeCausticShade( normal ) {
 
 	function placeSelectedBlock( gx, gz ) {
 
+		// Defense in depth for multiplayer/programmatic placement: pointer snapping
+		// is not the only caller. Non-collidable tools can never store fractions.
+		if ( ! canPlaceOffGrid( selectedType ) ) {
+
+			gx = Math.floor( Number( gx ) || 0 );
+			gz = Math.floor( Number( gz ) || 0 );
+
+		}
 		pushHistorySnapshot();
 		if ( selectedType === MAGNET_BLUE_TOOL || selectedType === MAGNET_RED_TOOL || selectedType === MAGNET_GRAPPLE_TOOL ) {
 
@@ -2940,6 +2955,14 @@ function computeCausticShade( normal ) {
 			removePoolTileAt( gx, gz, cell );
 			grid.set( key, cell );
 			const hadType = cell.surfaceTypes.includes( selectedType );
+			const isPad = selectedType.startsWith( 'pad-' );
+			const padCount = cell.surfaceTypes.filter( ( type ) => type.startsWith( 'pad-' ) ).length;
+			if ( allowSurfaceOverlap && isPad && ! hadType && padCount >= 3 ) {
+
+				showToast( 'Pad stack limit reached (3 max)' );
+				return;
+
+			}
 			if ( allowSurfaceOverlap ) {
 
 				cell.surfaceTypes = hadType ? [ ...cell.surfaceTypes ] : [ ...cell.surfaceTypes, selectedType ];
@@ -3580,13 +3603,10 @@ function computeCausticShade( normal ) {
 			gx = Math.floor( gx );
 			gz = Math.floor( gz );
 
-		} else if ( selectedType === MAGNET_BLUE_TOOL || selectedType === MAGNET_RED_TOOL || selectedType === ARC_GREEN_TOOL || selectedType === ARC_ORANGE_TOOL || selectedType === PORTAL_YELLOW_TOOL || selectedType === PORTAL_PURPLE_TOOL ) {
+		} else if ( ! placeOffGrid || ! canPlaceOffGrid( selectedType ) ) {
 
-			gx = normalizeCoord( gx - 0.5 );
-			gz = normalizeCoord( gz - 0.5 );
-
-		} else if ( ! placeOffGrid ) {
-
+			// Off-grid mode never applies to non-collidable effects/decoration.
+			// Pools are handled above and are also always whole-grid.
 			gx = Math.floor( gx );
 			gz = Math.floor( gz );
 
@@ -4246,19 +4266,29 @@ function computeCausticShade( normal ) {
 
 			}
 
-			for ( const [ gx, gz, surfaceType ] of mods.u ) {
+			for ( const [ rawGx, rawGz, surfaceType ] of mods.u ) {
 
+				const gx = Math.floor( Number( rawGx ) || 0 );
+				const gz = Math.floor( Number( rawGz ) || 0 );
 				const key = cellKey( gx, gz );
-					const cell = grid.get( key ) || makeEmptyCell();
-					removePoolTileAt( gx, gz, cell );
-					if ( ! grid.has( key ) ) grid.set( key, cell );
-					if ( SURFACE_TYPES.includes( surfaceType ) ) cell.surfaceTypes.push( surfaceType );
-					placeOverlayMesh( gx, gz, cell );
+				const cell = grid.get( key ) || makeEmptyCell();
+				removePoolTileAt( gx, gz, cell );
+				if ( ! grid.has( key ) ) grid.set( key, cell );
+				if ( SURFACE_TYPES.includes( surfaceType ) && ! cell.surfaceTypes.includes( surfaceType ) ) {
+
+					const isPad = String( surfaceType ).startsWith( 'pad-' );
+					const padCount = cell.surfaceTypes.filter( ( type ) => String( type ).startsWith( 'pad-' ) ).length;
+					if ( ! isPad || padCount < 3 ) cell.surfaceTypes.push( surfaceType );
+
+				}
+				placeOverlayMesh( gx, gz, cell );
 
 			}
 
-			for ( const [ gx, gz, decoType, decoOrient ] of mods.d ) {
+			for ( const [ rawGx, rawGz, decoType, decoOrient ] of mods.d ) {
 
+				const gx = BUILDING_TYPES.includes( decoType ) ? normalizeCoord( rawGx ) : Math.floor( Number( rawGx ) || 0 );
+				const gz = BUILDING_TYPES.includes( decoType ) ? normalizeCoord( rawGz ) : Math.floor( Number( rawGz ) || 0 );
 				const key = cellKey( gx, gz );
 					const cell = grid.get( key ) || makeEmptyCell();
 					removePoolTileAt( gx, gz, cell );
@@ -4271,10 +4301,10 @@ function computeCausticShade( normal ) {
 
 			for ( const [ gx, gz, yGrid, variant, strengthRaw, rangeRaw ] of mods.m || [] ) {
 
-				removePoolTileAt( normalizeCoord( gx ), normalizeCoord( gz ) );
+				removePoolTileAt( Math.floor( Number( gx ) || 0 ), Math.floor( Number( gz ) || 0 ) );
 				magnetBlocks.push( {
-					gx: normalizeCoord( gx ),
-					gz: normalizeCoord( gz ),
+					gx: Math.floor( Number( gx ) || 0 ),
+					gz: Math.floor( Number( gz ) || 0 ),
 					y: clampMagnetGridY( yGrid ),
 					type: String( variant ) === 'red' ? MAGNET_RED_TOOL : MAGNET_BLUE_TOOL,
 					strength: clampMagnetStrength( strengthRaw ),
@@ -4287,10 +4317,10 @@ function computeCausticShade( normal ) {
 
 			for ( const [ gx, gz, yGrid, variant, linkIdRaw ] of mods.a || [] ) {
 
-				removePoolTileAt( normalizeCoord( gx ), normalizeCoord( gz ) );
+				removePoolTileAt( Math.floor( Number( gx ) || 0 ), Math.floor( Number( gz ) || 0 ) );
 				arcBlocks.push( {
-					gx: normalizeCoord( gx ),
-					gz: normalizeCoord( gz ),
+					gx: Math.floor( Number( gx ) || 0 ),
+					gz: Math.floor( Number( gz ) || 0 ),
 					y: clampMagnetGridY( yGrid ),
 					type: String( variant ) === 'orange'
 						? ARC_ORANGE_TOOL
@@ -4748,6 +4778,7 @@ function refreshMovingSpeedUi() {
 		}
 		updateTileToolbar();
 		refreshMovingSpeedUi();
+		syncPlacementUi();
 
 	}
 
@@ -5084,9 +5115,11 @@ function refreshMovingSpeedUi() {
 	function syncPlacementUi() {
 
 		if ( ! offGridToggleBtn ) return;
-		offGridToggleBtn.textContent = placeOffGrid ? 'Snap: Off' : 'Snap: Grid';
-		offGridToggleBtn.classList.toggle( 'active', placeOffGrid );
-		if ( offGridDevBanner ) offGridDevBanner.hidden = ! placeOffGrid;
+		const effectiveOffGrid = placeOffGrid && canPlaceOffGrid( selectedType );
+		offGridToggleBtn.textContent = effectiveOffGrid ? 'Snap: Off' : 'Snap: Grid';
+		offGridToggleBtn.classList.toggle( 'active', effectiveOffGrid );
+		offGridToggleBtn.title = placeOffGrid && ! effectiveOffGrid ? 'This tool has no hitbox and stays on-grid' : '';
+		if ( offGridDevBanner ) offGridDevBanner.hidden = ! effectiveOffGrid;
 
 	}
 
