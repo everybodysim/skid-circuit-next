@@ -4,15 +4,15 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Skid Circuit — Track of the Day</title>
-<link rel="canonical" href="https://everybodysim.github.io/skid-circuit-next/totd.html">
+<link rel="canonical" href="https://everybodysim.github.io/Racing-game/totd.html">
 <meta name="description" content="Race the Skid Circuit Track of the Day — a daily seeded challenge track with a leaderboard for today's fastest run.">
 <meta name="robots" content="index, follow">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Skid Circuit">
 <meta property="og:title" content="Skid Circuit — Track of the Day">
 <meta property="og:description" content="Race the Skid Circuit Track of the Day — a daily seeded challenge track with a leaderboard for today's fastest run.">
-<meta property="og:url" content="https://everybodysim.github.io/skid-circuit-next/totd.html">
-<meta property="og:image" content="https://everybodysim.github.io/skid-circuit-next/branding/logo.png">
+<meta property="og:url" content="https://everybodysim.github.io/Racing-game/totd.html">
+<meta property="og:image" content="https://everybodysim.github.io/Racing-game/branding/logo.png">
   <style>
 .skip-link{position:absolute;left:12px;top:-40px;padding:8px 10px;border-radius:8px;background:#1b2a40;color:#fff;z-index:9999;border:1px solid rgba(255,255,255,.35)}
 .skip-link:focus{top:12px}
@@ -96,7 +96,7 @@
 
 <script>
 (() => {
-  const BASE_URL = "https://everybodysim.github.io/skid-circuit-next/index.html";
+  const BASE_URL = "https://everybodysim.github.io/Racing-game/index.html";
   const LEADERBOARD_API_BASE = 'https://racing-leaderboard-api.ga1010.workers.dev/api/leaderboard';
 
   // ---------- codec ----------
@@ -133,9 +133,9 @@
     if (mapParam) query.set('map', mapParam);
     if (modsParam) query.set('mods', modsParam);
     const rawUrl = `${pathname}${query.toString() ? `?${query.toString()}` : ''}`;
-    // Default track uses v5; custom tracks use v4. easy-v1 resets all boards.
+    // Default track (no map/mods) keeps the reset v5 id; others keep v4.
     const seedVersion = (mapParam || modsParam) ? 'v4' : 'v5';
-    return `easy-v1-trk-${hashTrackSeed(`${seedVersion}-url|${rawUrl}`)}`;
+    return `trk-${hashTrackSeed(`${seedVersion}-url|${rawUrl}`)}`;
   }
 
   function getTrackIds(playUrl) {
@@ -143,7 +143,7 @@
       const parsed = new URL(playUrl, window.location.href);
       const map = parsed.searchParams.get('map');
       const mods = parsed.searchParams.get('mods');
-      const normalizedPath = normalizeTrackPath(new URL('index.html', window.location.href).pathname);
+      const normalizedPath = normalizeTrackPath(parsed.pathname || '/');
       return [buildTrackId(normalizedPath, map, mods)];
     } catch {
       return [];
