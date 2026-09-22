@@ -30,19 +30,19 @@ navigator.serviceWorker?.getRegistrations?.().then(rs => {
 	<link rel="manifest" href="manifest.webmanifest">
 	<link rel="icon" href="icons/favicon.png" type="image/png">
 	<link rel="apple-touch-icon" href="icons/icon-192.png">
-	<link rel="canonical" href="https://everybodysim.github.io/Racing-game/">
+	<link rel="canonical" href="https://everybodysim.github.io/skid-circuit-next/">
 	<meta name="description" content="Play Skid Circuit, a free 3D browser racing game. Race, drift, build custom tracks, compete for fast times, and play with the Skid Circuit community.">
 	<meta name="robots" content="index, follow">
 	<meta property="og:type" content="website">
 	<meta property="og:site_name" content="Skid Circuit">
 	<meta property="og:title" content="Skid Circuit — Free Browser Racing Game">
 	<meta property="og:description" content="Play Skid Circuit, a free 3D browser racing game. Race, drift, build custom tracks, compete for fast times, and play with the Skid Circuit community.">
-	<meta property="og:url" content="https://everybodysim.github.io/Racing-game/">
-	<meta property="og:image" content="https://everybodysim.github.io/Racing-game/branding/logo.png">
+	<meta property="og:url" content="https://everybodysim.github.io/skid-circuit-next/">
+	<meta property="og:image" content="https://everybodysim.github.io/skid-circuit-next/branding/logo.png">
 	<meta name="twitter:card" content="summary_large_image">
 	<meta name="twitter:title" content="Skid Circuit — Free Browser Racing Game">
 	<meta name="twitter:description" content="Play Skid Circuit, a free 3D browser racing game. Race, drift, build custom tracks, compete for fast times, and play with the Skid Circuit community.">
-	<meta name="twitter:image" content="https://everybodysim.github.io/Racing-game/branding/logo.png">
+	<meta name="twitter:image" content="https://everybodysim.github.io/skid-circuit-next/branding/logo.png">
 	<script type="application/ld+json">
 	{
 		"@context": "https://schema.org",
@@ -50,18 +50,18 @@ navigator.serviceWorker?.getRegistrations?.().then(rs => {
 			{
 				"@type": "WebSite",
 				"name": "Skid Circuit",
-				"url": "https://everybodysim.github.io/Racing-game/",
+				"url": "https://everybodysim.github.io/skid-circuit-next/",
 				"description": "A free 3D browser racing game where you can race, drift, compete for fast times, build custom tracks, and play with the community.",
 				"potentialAction": {
 					"@type": "PlayAction",
-					"target": "https://everybodysim.github.io/Racing-game/?play=1",
+					"target": "https://everybodysim.github.io/skid-circuit-next/?play=1",
 					"name": "Play Skid Circuit"
 				}
 			},
 			{
 				"@type": "VideoGame",
 				"name": "Skid Circuit",
-				"url": "https://everybodysim.github.io/Racing-game/",
+				"url": "https://everybodysim.github.io/skid-circuit-next/",
 				"genre": ["Racing", "Sports"],
 				"gamePlatform": ["Web Browser"],
 				"applicationCategory": "Game",
@@ -2946,10 +2946,10 @@ navigator.serviceWorker?.getRegistrations?.().then(rs => {
 					const q = new URLSearchParams();
 					if ( map ) q.set( 'map', map );
 					if ( mods ) q.set( 'mods', mods );
-					const rawUrl = `${ normalizeTrackPath( u.pathname ) }${ q.toString() ? `?${ q.toString() }` : '' }`;
-					// Default track (no map/mods) keeps the reset v5 id; others keep v4.
+					const rawUrl = `${ normalizeTrackPath( window.location.pathname ) }${ q.toString() ? `?${ q.toString() }` : '' }`;
+					// Default track uses v5; custom tracks use v4. easy-v1 resets all boards.
 					const seedVersion = ( map || mods ) ? 'v4' : 'v5';
-					return `trk-${ hashTrackSeed( `${ seedVersion }-url|${ rawUrl }` ) }`;
+					return `easy-v1-trk-${ hashTrackSeed( `${ seedVersion }-url|${ rawUrl }` ) }`;
 				} catch ( e ) { return ''; }
 			}
 
@@ -3451,7 +3451,7 @@ document.getElementById('loading-status').textContent =
   'HTML TEST 20260621-B';
 </script>
 	         <script src="js/HudGrid.js?v=999974&cachebust=1"></script>
-      <script type="module" src="js/main.js?v=1000293&cachebust=1"></script>
+      <script type="module" src="js/main.js?v=1000294&cachebust=1"></script>
   <style>
     body {
       font-family: system-ui, -apple-system, Segoe UI, sans-serif;
